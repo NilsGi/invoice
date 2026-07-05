@@ -14,7 +14,9 @@
       { description: 'Fakturaavgift', quantity: '1', unit: 'st', unitPrice: '25', vatRate: '0' }
     ]
   });
-  const getData = () => ({ ...Object.fromEntries(fields.map((id) => [id, $(id).value])), rows: getRows() });
+  const isFeeRow = (row) => String(row?.description || '').trim().toLowerCase() === 'fakturaavgift';
+  const sortRows = (rows = []) => [...rows.filter((row) => !isFeeRow(row)), ...rows.filter(isFeeRow)];
+  const getData = () => ({ ...Object.fromEntries(fields.map((id) => [id, $(id).value])), rows: sortRows(getRows()) });
   const setData = (data) => { fields.forEach((id) => { if ($(id)) $(id).value = data[id] ?? ''; }); renderRows(data.rows || []); updateTotals(); };
   const getRows = () => [...document.querySelectorAll('.invoice-row')].map((el) => Object.fromEntries([...el.querySelectorAll('[data-field]')].map((input) => [input.dataset.field, input.value])));
   const renderRows = (rows) => { $('rows').innerHTML = ''; rows.forEach(addRow); };
@@ -23,7 +25,12 @@
     Object.entries(row).forEach(([key, value]) => { const input = node.querySelector(`[data-field="${key}"]`); if (input) input.value = value; });
     node.querySelector('[data-remove]').addEventListener('click', () => { node.remove(); updateTotals(); });
     node.querySelectorAll('input,select').forEach((input) => input.addEventListener('input', updateTotals));
-    $('rows').appendChild(node);
+    const existingFee = [...document.querySelectorAll('.invoice-row')].find((el) => String(el.querySelector('[data-field="description"]')?.value || '').trim().toLowerCase() === 'fakturaavgift');
+    if (existingFee && !isFeeRow(row)) {
+      $('rows').insertBefore(node, existingFee);
+    } else {
+      $('rows').appendChild(node);
+    }
     updateTotals();
   };
   const updateTotals = () => {
@@ -45,7 +52,11 @@
     window.InvoiceStorage.customers().forEach((customer, index) => select.add(new Option(customer.name, String(index))));
   };
   $('addRowBtn').addEventListener('click', () => addRow());
-  $('pdfBtn').addEventListener('click', () => window.InvoicePDF.generate(getData()));
+  $('pdfBtn').addEventListener('click', () => {
+    const data = getData();
+    renderRows(data.rows);
+    window.InvoicePDF.generate(data);
+  });
   $('saveDraftBtn').addEventListener('click', () => { window.InvoiceStorage.saveDraft(getData()); alert('Utkast sparat i denna webbläsare.'); });
   $('loadDraftBtn').addEventListener('click', () => { const draft = window.InvoiceStorage.loadDraft(); draft ? setData(draft) : alert('Inget sparat utkast hittades.'); });
   $('resetBtn').addEventListener('click', () => setData(defaultData()));
