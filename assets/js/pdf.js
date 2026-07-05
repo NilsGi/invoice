@@ -32,15 +32,15 @@ window.InvoicePDF = (() => {
 
   const footerBlock = (doc, title, lines, x, y, width) => {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
+    doc.setFontSize(11);
     doc.text(title, x, y);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.6);
-    let yy = y + 6;
+    doc.setFontSize(10);
+    let yy = y + 6.5;
     lines.filter(Boolean).forEach((row) => {
       const wrapped = doc.splitTextToSize(row, width);
       doc.text(wrapped, x, yy);
-      yy += Math.max(5, wrapped.length * 5);
+      yy += Math.max(5.5, wrapped.length * 5.5);
     });
   };
 
@@ -52,102 +52,146 @@ window.InvoicePDF = (() => {
 
     doc.setTextColor(35, 35, 35);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(28);
+    doc.setFontSize(30);
     doc.text('Faktura', page.margin, 20);
 
     // Avsändare och mottagare
     let y = 43;
-    doc.setFontSize(11.5);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
     doc.text(data.sellerName || '', page.margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10.5);
-    doc.text(data.sellerAddress || '', page.margin, y + 6);
-    doc.text(data.sellerZipCity || '', page.margin, y + 12);
+    doc.setFontSize(11.5);
+    doc.text(data.sellerAddress || '', page.margin, y + 7);
+    doc.text(data.sellerZipCity || '', page.margin, y + 14);
 
     const bx = 105;
-    doc.setFontSize(11.5);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
     doc.text(data.buyerName || '', bx, y);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10.5);
-    let by = y + 6;
-    if (data.buyerOrg) { doc.text(data.buyerOrg, bx, by); by += 6; }
-    if (data.buyerAddress) { doc.text(data.buyerAddress, bx, by); by += 6; }
-    if (data.buyerZipCity) { doc.text(data.buyerZipCity, bx, by); by += 6; }
+    doc.setFontSize(11.5);
+    let by = y + 7;
+    if (data.buyerOrg) { doc.text(data.buyerOrg, bx, by); by += 7; }
+    if (data.buyerAddress) { doc.text(data.buyerAddress, bx, by); by += 7; }
+    if (data.buyerZipCity) { doc.text(data.buyerZipCity, bx, by); by += 7; }
     if (data.buyerAtt) { doc.setFont('helvetica', 'bold'); doc.text(`Att: ${data.buyerAtt}`, bx, by); }
 
     // Fakturainfo
     y = 83;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.5);
+    doc.setFontSize(11.5);
     doc.text('Fakturanummer', page.margin, y);
     doc.text('Fakturadatum', 82, y);
     doc.text('Förfallodag', 142, y);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    doc.text(data.invoiceNumber || '', page.margin, y + 7);
-    doc.text(dateSv(data.invoiceDate), 82, y + 7);
-    doc.text(dateSv(data.dueDate), 142, y + 7);
+    doc.setFontSize(12);
+    doc.text(data.invoiceNumber || '', page.margin, y + 8);
+    doc.text(dateSv(data.invoiceDate), 82, y + 8);
+    doc.text(dateSv(data.dueDate), 142, y + 8);
 
-    // Tabell
+    // Tabell - fasta kolumner så text och belopp inte krockar.
     y = 113;
-    line(doc, y, 0.7);
-    y += 8;
+    line(doc, y, 0.75);
+    y += 8.5;
+
+    const col = {
+      desc: page.margin,
+      qty: 82,
+      unit: 91,
+      price: 126,
+      vatRate: 149,
+      vatKr: 176,
+      total: 198
+    };
+
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
-    doc.text('Beskrivning', page.margin, y);
-    right(doc, 'Antal', 84, y);
-    doc.text('Enhet', 89, y);
-    right(doc, 'á pris', 126, y);
-    right(doc, 'Moms', 149, y);
-    right(doc, 'Moms kr', 176, y);
-    right(doc, 'Total', 198, y);
-    y += 4;
-    line(doc, y, 0.2);
+    doc.setFontSize(10.8);
+    doc.text('Beskrivning', col.desc, y);
+    right(doc, 'Antal', col.qty, y);
+    doc.text('Enhet', col.unit, y);
+    right(doc, 'á pris', col.price, y);
+    right(doc, 'Moms', col.vatRate, y);
+    right(doc, 'Moms kr', col.vatKr, y);
+    right(doc, 'Total', col.total, y);
+
+    y += 4.8;
+    line(doc, y, 0.25);
     y += 8;
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.8);
+    doc.setFontSize(10.8);
+
     totals.rows.forEach((row) => {
-      const descLines = doc.splitTextToSize(row.description || '', 58);
-      doc.text(descLines, page.margin, y);
-      if (row.quantity) right(doc, qty(parseNumber(row.quantity)), 84, y);
-      doc.text(row.unit || '', 89, y);
-      if (row.unitPrice) right(doc, money(parseNumber(row.unitPrice)), 126, y);
-      if (data.invoiceVatMode !== 'reverse' && Number(row.vatRate) > 0) right(doc, `${row.vatRate}%`, 149, y);
-      if (row.vat) right(doc, money(row.vat), 176, y);
-      if (row.quantity) right(doc, money(row.total), 198, y);
-      y += Math.max(8, descLines.length * 5.2 + 3);
-      line(doc, y - 2, 0.12);
+      const descLines = doc.splitTextToSize(row.description || '', 60);
+      const rowStartY = y;
+
+      doc.text(descLines, col.desc, rowStartY);
+
+      if (parseNumber(row.quantity)) right(doc, qty(parseNumber(row.quantity)), col.qty, rowStartY);
+      doc.text(row.unit || '', col.unit, rowStartY);
+
+      if (parseNumber(row.unitPrice)) right(doc, money(parseNumber(row.unitPrice)), col.price, rowStartY);
+
+      if (data.invoiceVatMode !== 'reverse' && Number(row.vatRate) > 0) {
+        right(doc, `${row.vatRate}%`, col.vatRate, rowStartY);
+        right(doc, money(row.vat), col.vatKr, rowStartY);
+      }
+
+      if (parseNumber(row.quantity)) {
+        doc.setFont('helvetica', 'bold');
+        right(doc, money(row.total), col.total, rowStartY);
+        doc.setFont('helvetica', 'normal');
+      }
+
+      // Inga tunna rader mellan fakturaraderna – de hamnade visuellt över texten.
+      y += Math.max(8.5, descLines.length * 5.4 + 3.5);
     });
 
-    // Om det finns många rader, låt totalsumman börja där det finns plats.
-    y = Math.max(y + 7, 188);
-    if (y > 215) y = 215;
+    y += 2.5;
+    line(doc, y, 0.35);
 
-    const sx = 140;
+    // Totalruta - tydlig högerkolumn med samma högerkant som tabellen.
+    y = Math.max(y + 12, 185);
+    if (y > 216) y = 216;
+
+    const labelX = 150;
+    const valueX = 198;
+
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.3);
-    doc.text('Belopp före moms', sx, y, { align: 'right' }); right(doc, money(totals.net), 198, y);
-    y += 7;
-    doc.text('Total moms', sx, y, { align: 'right' }); right(doc, money(totals.vat), 198, y);
-    y += 7;
-    doc.text('Öresutjämning', sx, y, { align: 'right' }); right(doc, money(totals.rounding), 198, y);
+    doc.setFontSize(11);
+    doc.text('Belopp före moms', labelX, y, { align: 'right' });
+    right(doc, money(totals.net), valueX, y);
+
+    y += 7.5;
+    doc.text('Total moms', labelX, y, { align: 'right' });
+    right(doc, money(totals.vat), valueX, y);
+
+    y += 7.5;
+    doc.text('Öresutjämning', labelX, y, { align: 'right' });
+    right(doc, money(totals.rounding), valueX, y);
+
+    y += 5;
+    doc.setLineWidth(0.35);
+    doc.line(110, y, valueX, y);
+
     y += 9;
-    doc.setFontSize(12.5);
-    doc.text('Summa att betala', sx, y, { align: 'right' }); right(doc, money(totals.grandTotal), 198, y);
+    doc.setFontSize(13.5);
+    doc.text('Summa att betala', labelX, y, { align: 'right' });
+    doc.setFontSize(14.5);
+    right(doc, money(totals.grandTotal), valueX, y);
 
     // Meddelande och footer
     y = 242;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.5);
+    doc.setFontSize(10);
     if (data.invoiceVatMode === 'reverse' && data.reverseChargeText) {
-      y = wrappedText(doc, data.reverseChargeText, page.margin, y - 8, 170, 5.3);
+      y = wrappedText(doc, data.reverseChargeText, page.margin, y - 8, 170, 5.5);
     }
     doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
     doc.text('Godkänd för F-skatt', page.margin, y);
-    y += 4;
+    y += 5;
     line(doc, y, 0.55);
 
     y += 9;
