@@ -97,23 +97,23 @@ window.InvoicePDF = (() => {
 
     const col = {
       desc: page.margin,
-      qty: 82,
-      unit: 91,
-      price: 126,
-      vatRate: 149,
-      vatKr: 176,
-      total: 198
+      qty: 78,
+      unit: 88,
+      price: 120,
+      vatRate: 142,
+      vatKr: 172,
+      total: 202
     };
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.8);
+    doc.setFontSize(10);
     doc.text('Beskrivning', col.desc, y);
     right(doc, 'Antal', col.qty, y);
     doc.text('Enhet', col.unit, y);
     right(doc, 'á pris', col.price, y);
     right(doc, 'Moms', col.vatRate, y);
     right(doc, 'Moms kr', col.vatKr, y);
-    right(doc, 'Total', col.total, y);
+    right(doc, 'Totalt', col.total, y);
 
     y += 4.8;
     line(doc, y, 0.25);
@@ -155,8 +155,8 @@ window.InvoicePDF = (() => {
     y = Math.max(y + 12, 185);
     if (y > 216) y = 216;
 
-    const labelX = 150;
-    const valueX = 198;
+    const labelX = 145;
+    const valueX = 202;
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
