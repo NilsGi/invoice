@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Faktura-app</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/calculations.js" defer></script>
+  <script src="assets/js/pdf.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Faktura</h1>
+      <p>Skapa faktura och exportera till PDF</p>
+    </div>
+    <button id="resetBtn" class="ghost" type="button">Ny faktura</button>
+  </header>
+
+  <main class="app-shell">
+    <section class="card">
+      <h2>Fakturauppgifter</h2>
+      <div class="grid three">
+        <label>Fakturanummer<input id="invoiceNumber" autocomplete="off"></label>
+        <label>Fakturadatum<input id="invoiceDate" type="date"></label>
+        <label>Förfallodag<input id="dueDate" type="date"></label>
+      </div>
+      <div class="grid two">
+        <label>Moms på fakturan
+          <select id="invoiceVatMode">
+            <option value="vat">Med moms</option>
+            <option value="reverse">Utan moms / omvänd skattskyldighet</option>
+          </select>
+        </label>
+        <label>Meddelande vid omvänd skattskyldighet<input id="reverseChargeText" placeholder="Omvänd skattskyldighet gäller för org.nr ..."></label>
+      </div>
+    </section>
+
+    <section class="card two-col">
+      <div>
+        <h2>Avsändare</h2>
+        <label>Företagsnamn<input id="sellerName"></label>
+        <label>Adress<input id="sellerAddress"></label>
+        <label>Postadress<input id="sellerZipCity"></label>
+        <label>Land<input id="sellerCountry"></label>
+        <label>Org.nr<input id="sellerOrg"></label>
+        <label>Momsreg.nr<input id="sellerVat"></label>
+      </div>
+      <div>
+        <h2>Kontakt & betalning</h2>
+        <label>Namn<input id="contactName"></label>
+        <label>Telefon<input id="contactPhone"></label>
+        <label>E-post<input id="contactEmail"></label>
+        <label>Betalningssätt<input id="paymentType" placeholder="Bankgiro"></label>
+        <label>Betalningsnummer<input id="paymentNumber"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Fakturamottagare</h2>
+        <div class="button-row compact">
+          <button id="saveCustomerBtn" class="secondary" type="button">Spara mottagare</button>
+          <select id="customerSelect"><option value="">Välj sparad mottagare</option></select>
+        </div>
+      </div>
+      <div class="grid two">
+        <label>Namn / Företag<input id="buyerName"></label>
+        <label>Org.nr / personnummer<input id="buyerOrg"></label>
+        <label>Adress<input id="buyerAddress"></label>
+        <label>Postadress<input id="buyerZipCity"></label>
+        <label>Att<input id="buyerAtt"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Fakturarader</h2>
+        <button id="addRowBtn" type="button">Lägg till rad</button>
+      </div>
+      <div id="rows" class="rows"></div>
+    </section>
+
+    <section class="card summary-card">
+      <div class="summary">
+        <div><span>Belopp före moms</span><strong id="netTotal">0,00 kr</strong></div>
+        <div><span>Total moms</span><strong id="vatTotal">0,00 kr</strong></div>
+        <div><span>Öresutjämning</span><strong id="rounding">0,00 kr</strong></div>
+        <div class="pay"><span>Summa att betala</span><strong id="grandTotal">0,00 kr</strong></div>
+      </div>
+      <div class="button-row">
+        <button id="pdfBtn" type="button">Skapa PDF</button>
+        <button id="saveDraftBtn" class="secondary" type="button">Spara utkast</button>
+        <button id="loadDraftBtn" class="secondary" type="button">Ladda utkast</button>
+      </div>
+      <p class="hint">Alla belopp anges som pris exklusive moms, precis som i din mall. Totalen avrundas till hela kronor via öresutjämning.</p>
+    </section>
+  </main>
+
+  <template id="rowTemplate">
+    <article class="invoice-row">
+      <label class="description">Beskrivning<input data-field="description" placeholder="T.ex. Originaltimmar"></label>
+      <label>Antal<input data-field="quantity" inputmode="decimal" placeholder="1"></label>
+      <label>Enhet<input data-field="unit" placeholder="Tim"></label>
+      <label>á pris<input data-field="unitPrice" inputmode="decimal" placeholder="500"></label>
+      <label>Moms
+        <select data-field="vatRate">
+          <option value="25">25%</option>
+          <option value="12">12%</option>
+          <option value="6">6%</option>
+          <option value="0">0%</option>
+        </select>
+      </label>
+      <div class="row-total"><span>Radtotal</span><strong data-total>0,00 kr</strong></div>
+      <button data-remove class="danger" type="button">Ta bort</button>
+    </article>
+  </template>
+</body>
+</html>
