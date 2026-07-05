@@ -17,6 +17,15 @@ window.InvoicePDF = (() => {
 
   const right = (doc, value, x, y) => doc.text(String(value), x, y, { align: 'right' });
 
+  const moneyCell = (doc, value, x, y, bold = false) => {
+    const text = String(value);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setFontSize(text.length > 12 ? 8.7 : 9.3);
+    doc.text(text, x, y, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.3);
+  };
+
   const dateSv = (value) => {
     if (!value) return '';
     const d = new Date(`${value}T00:00:00`);
@@ -35,7 +44,7 @@ window.InvoicePDF = (() => {
     doc.setFontSize(11);
     doc.text(title, x, y);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.setFontSize(9.3);
     let yy = y + 6.5;
     lines.filter(Boolean).forEach((row) => {
       const wrapped = doc.splitTextToSize(row, width);
@@ -98,15 +107,15 @@ window.InvoicePDF = (() => {
     const col = {
       desc: page.margin,
       qty: 76,
-      unit: 86,
-      price: 114,
-      vatRate: 136,
-      vatKr: 164,
-      total: 198
+      unit: 88,
+      price: 116,
+      vatRate: 138,
+      vatKr: 166,
+      total: 202
     };
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
+    doc.setFontSize(9.3);
     doc.text('Beskrivning', col.desc, y);
     right(doc, 'Antal', col.qty, y);
     doc.text('Enhet', col.unit, y);
@@ -135,12 +144,12 @@ window.InvoicePDF = (() => {
 
       if (data.invoiceVatMode !== 'reverse' && Number(row.vatRate) > 0) {
         right(doc, `${row.vatRate}%`, col.vatRate, rowStartY);
-        right(doc, money(row.vat), col.vatKr, rowStartY);
+        moneyCell(doc, money(row.vat), col.vatKr, rowStartY);
       }
 
       if (parseNumber(row.quantity)) {
         doc.setFont('helvetica', 'bold');
-        right(doc, money(row.total), col.total, rowStartY);
+        moneyCell(doc, money(row.total), col.total, rowStartY, true);
         doc.setFont('helvetica', 'normal');
       }
 
@@ -155,8 +164,8 @@ window.InvoicePDF = (() => {
     y = Math.max(y + 12, 185);
     if (y > 216) y = 216;
 
-    const labelX = 145;
-    const valueX = 198;
+    const labelX = 150;
+    const valueX = 202;
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
@@ -184,7 +193,7 @@ window.InvoicePDF = (() => {
     // Meddelande och footer
     y = 242;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.setFontSize(9.3);
     if (data.invoiceVatMode === 'reverse' && data.reverseChargeText) {
       y = wrappedText(doc, data.reverseChargeText, page.margin, y - 8, 170, 5.5);
     }
