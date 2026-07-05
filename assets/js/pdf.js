@@ -97,12 +97,12 @@ window.InvoicePDF = (() => {
 
     const col = {
       desc: page.margin,
-      qty: 78,
-      unit: 88,
-      price: 120,
-      vatRate: 142,
-      vatKr: 172,
-      total: 202
+      qty: 76,
+      unit: 86,
+      price: 114,
+      vatRate: 136,
+      vatKr: 164,
+      total: 198
     };
 
     doc.setFont('helvetica', 'bold');
@@ -120,7 +120,7 @@ window.InvoicePDF = (() => {
     y += 8;
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10.8);
+    doc.setFontSize(9.4);
 
     totals.rows.forEach((row) => {
       const descLines = doc.splitTextToSize(row.description || '', 60);
@@ -156,7 +156,7 @@ window.InvoicePDF = (() => {
     if (y > 216) y = 216;
 
     const labelX = 145;
-    const valueX = 202;
+    const valueX = 198;
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
@@ -173,7 +173,7 @@ window.InvoicePDF = (() => {
 
     y += 5;
     doc.setLineWidth(0.35);
-    doc.line(110, y, valueX, y);
+    doc.line(112, y, valueX, y);
 
     y += 9;
     doc.setFontSize(13.5);
